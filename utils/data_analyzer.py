@@ -29,8 +29,26 @@ class DataAnalyzer:
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
         
-        # Tüm verileri al (tarih filtresi kaldırıldı - mevcut veriler eski)
-        posts = Post.query.all()
+        # Flask app context olmadan doğrudan SQLite kullan
+        import sqlite3
+        conn = sqlite3.connect('instance/data.db')
+        cur = conn.cursor()
+        
+        # Posts tablosundan veri çek
+        cur.execute("SELECT * FROM posts")
+        rows = cur.fetchall()
+        
+        # Sütun isimlerini al
+        cur.execute("PRAGMA table_info(posts)")
+        columns = [col[1] for col in cur.fetchall()]
+        
+        # Dict formatına çevir
+        posts = []
+        for row in rows:
+            post_dict = dict(zip(columns, row))
+            posts.append(post_dict)
+        
+        conn.close()
         
         return {
             'posts': posts,
@@ -42,11 +60,12 @@ class DataAnalyzer:
     def analyze_geographic_distribution(self, days: int = 30) -> Dict:
         """Coğrafi dağılım analizi"""
         # Tüm verileri al (tarih filtresi kaldırıldı)
-        posts = Post.query.all()
+        data = self.get_time_range_data(days)
+        posts = data['posts']
         
         country_counts = Counter()
         for post in posts:
-            country = post.country or 'Bilinmeyen'
+            country = post.get('country') or 'Bilinmeyen'
             country_counts[country] += 1
         
         # En çok saldırı alan 10 ülke
@@ -503,31 +522,31 @@ class DataAnalyzer:
             
             # Toplam sayılar
             total_attacks = len(posts)
-            total_companies = len(set([p.name for p in posts if p.name]))
-            total_countries = len(set([p.country for p in posts if p.country]))
-            total_sectors = len(set([p.activity for p in posts if p.activity]))
+            total_companies = len(set([p.get('name') for p in posts if p.get('name')]))
+            total_countries = len(set([p.get('country') for p in posts if p.get('country')]))
+            total_sectors = len(set([p.get('activity') for p in posts if p.get('activity')]))
             
             # Risk seviyesi dağılımı
-            risk_levels = Counter([p.activity for p in posts if p.activity])
+            risk_levels = Counter([p.get('activity') for p in posts if p.get('activity')])
             critical_attacks = risk_levels.get('Critical', 0) + risk_levels.get('Kritik', 0)
             high_attacks = risk_levels.get('High', 0) + risk_levels.get('Yüksek', 0)
             medium_attacks = risk_levels.get('Medium', 0) + risk_levels.get('Orta', 0)
             low_attacks = risk_levels.get('Low', 0) + risk_levels.get('Düşük', 0)
             
             # Coğrafi analiz
-            country_counts = Counter([p.country for p in posts if p.country])
+            country_counts = Counter([p.get('country') for p in posts if p.get('country')])
             top_countries = dict(country_counts.most_common(10))
             
             # Tehdit aktörü analizi
-            threat_actor_counts = Counter([p.name for p in posts if p.name])
+            threat_actor_counts = Counter([p.get('name') for p in posts if p.get('name')])
             top_threat_actors = dict(threat_actor_counts.most_common(10))
             
             # Sektör analizi (basit)
-            sector_counts = Counter([p.activity for p in posts if p.activity])
+            sector_counts = Counter([p.get('activity') for p in posts if p.get('activity')])
             real_sectors = dict(sector_counts.most_common(10))
             
             # Activity analizi
-            activities = dict(Counter([p.activity for p in posts if p.activity]))
+            activities = dict(Counter([p.get('activity') for p in posts if p.get('activity')]))
             
             return {
                 'overview': {
