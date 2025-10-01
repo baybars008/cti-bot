@@ -23,10 +23,9 @@ def controller_dashboard():
 def controller_dashboard_data():
     """Returns dashboard data as JSON"""
     try:
-        # Use simple data analysis
-        from utils.data_analyzer import DataAnalyzer
-        analyzer = DataAnalyzer()
-        data = analyzer.get_basic_stats()
+        # Use simple API
+        from utils.simple_api import get_dashboard_data
+        data = get_dashboard_data()
         
         # Additional data for tactical dashboard
         overview = data['overview']
@@ -92,46 +91,17 @@ def controller_recent_attacks():
     """Returns recent attacks (supports pagination and date filtering)"""
     try:
         from flask import request
+        from utils.simple_api import get_recent_attacks
+        
         page = int(request.args.get('page', 1))
         per_page = int(request.args.get('per_page', 10))
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
 
-        query = Post.query.filter(Post.name.isnot(None))
-
-        # Simple comparison since discovered field can be string
-        if start_date:
-            query = query.filter(Post.discovered >= start_date)
-        if end_date:
-            query = query.filter(Post.discovered <= end_date)
-
-        total = query.count()
-
-        recent_posts = query.order_by(Post.discovered.desc()) \
-                           .offset((page - 1) * per_page) \
-                           .limit(per_page).all()
-
-        # For real sector analysis
-        from utils.sector_detector import SectorDetector
-        sector_analyzer = RealSectorAnalyzer()
-        
-        attacks = []
-        for post in recent_posts:
-            # Detect real sector
-            sector = sector_analyzer.detect_company_sector(post.name or '', post.description or '')
-            
-            # Threat actor check
-            is_threat_actor = sector == 'Threat Actor'
-            
-            attacks.append({
-                'company': post.name or 'Unknown',
-                'sector': sector if not is_threat_actor else 'Threat Actor',
-                'country': post.country or 'Unknown',
-                'threat_actor': (post.name or 'Unknown') if is_threat_actor else 'Unknown',
-                'risk_level': post.activity or 'Medium',
-                'date': (post.discovered.strftime('%Y-%m-%d') if hasattr(post.discovered, 'strftime') and post.discovered else (post.discovered or 'Unknown')),
-                'is_threat_actor': is_threat_actor
-            })
+        # Get recent attacks
+        result = get_recent_attacks(page, per_page, start_date, end_date)
+        attacks = result['attacks']
+        pagination = result['pagination']
 
         return jsonify({
             'success': True,
@@ -152,6 +122,7 @@ def controller_filtered_attacks():
     """Returns filtered attacks"""
     try:
         from flask import request
+        from utils.simple_api import get_filtered_attacks
         
         # Get filter parameters
         start_date = request.args.get('start_date')
@@ -162,41 +133,8 @@ def controller_filtered_attacks():
         
         print(f"🔍 Filter parameters: start_date={start_date}, end_date={end_date}, country={country}, risk_level={risk_level}")
         
-        # Create query
-        query = Post.query.filter(Post.name.isnot(None))
-        
-        # Date filter - direct comparison since discovered column is string
-        if start_date:
-            query = query.filter(Post.discovered >= start_date)
-        if end_date:
-            query = query.filter(Post.discovered <= end_date)
-        
-        # Country filter
-        if country:
-            query = query.filter(Post.country == country)
-        
-        # Sector filter (no sector field in current table, skip)
-        # if sector:
-        #     query = query.filter(Post.sector == sector)
-        
-        # Risk level filter
-        if risk_level:
-            query = query.filter(Post.activity == risk_level)
-        
-        # Get results
-        posts = query.order_by(Post.discovered.desc()).all()
-        print(f"📊 Filter result: {len(posts)} records found")
-        
-        attacks = []
-        for post in posts:
-            attacks.append({
-                'company': post.name or 'Unknown',
-                'sector': 'Unknown',  # No sector field in current table
-                'country': post.country or 'Unknown',
-                'threat_actor': post.name or 'Unknown',
-                'risk_level': post.activity or 'Medium',
-                'date': post.discovered or 'Unknown'
-            })
+        # Get filtered attacks
+        attacks = get_filtered_attacks(start_date, end_date, country, risk_level)
         
         print(f"✅ Filter successful: {len(attacks)} attacks returned")
         
