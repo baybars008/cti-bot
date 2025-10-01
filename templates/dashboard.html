@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTI-BOT | Siber Tehdit İstihbarat Platformu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Tailwind CSS production uyarısını gizle
+        tailwind.config = {
+            theme: {
+                extend: {}
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+        
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .tactical-gradient {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        }
+        
+        .orange-glow {
+            box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .grid-pattern {
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+<body class="bg-neutral-900 text-white font-mono">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div id="sidebar" class="w-70 bg-neutral-900 border-r border-neutral-700 transition-all duration-300 fixed md:relative z-50 md:z-auto h-full md:h-auto">
+            <div class="p-4">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h1 class="text-orange-500 font-bold text-lg tracking-wider">CTI-BOT</h1>
+                        <p class="text-neutral-500 text-xs">v2.1.7 CLASSIFIED</p>
+                    </div>
+                    <button id="sidebar-toggle" class="text-neutral-400 hover:text-orange-500 p-2">
+                        <i data-lucide="chevron-right" class="w-4 h-4 transition-transform"></i>
+                    </button>
+                </div>
+
+                <nav class="space-y-2">
+                    <button onclick="showSection('overview')" class="nav-item w-full flex items-center gap-3 p-3 rounded transition-colors bg-orange-500 text-white">
+                        <i data-lucide="monitor" class="w-5 h-5"></i>
+                        <span class="text-sm font-medium">COMMAND CENTER</span>
+                    </button>
+                    <button onclick="showSection('threats')" class="nav-item w-full flex items-center gap-3 p-3 rounded transition-colors text-neutral-400 hover:text-white hover:bg-neutral-800">
+                        <i data-lucide="shield" class="w-5 h-5"></i>
+                        <span class="text-sm font-medium">THREAT INTELLIGENCE</span>
+                    </button>
+                    <button onclick="showSection('attacks')" class="nav-item w-full flex items-center gap-3 p-3 rounded transition-colors text-neutral-400 hover:text-white hover:bg-neutral-800">
+                        <i data-lucide="target" class="w-5 h-5"></i>
+                        <span class="text-sm font-medium">ATTACK ANALYSIS</span>
+                    </button>
+                    <button onclick="showSection('companies')" class="nav-item w-full flex items-center gap-3 p-3 rounded transition-colors text-neutral-400 hover:text-white hover:bg-neutral-800">
+                        <i data-lucide="building" class="w-5 h-5"></i>
+                        <span class="text-sm font-medium">COMPANY NETWORK</span>
+                    </button>
+                    <button onclick="showSection('monitoring')" class="nav-item w-full flex items-center gap-3 p-3 rounded transition-colors text-neutral-400 hover:text-white hover:bg-neutral-800">
+                        <i data-lucide="activity" class="w-5 h-5"></i>
+                        <span class="text-sm font-medium">MONITORING</span>
+                    </button>
+                    <button onclick="showSection('analytics')" class="nav-item w-full flex items-center gap-3 p-3 rounded transition-colors text-neutral-400 hover:text-white hover:bg-neutral-800">
+                        <i data-lucide="bar-chart" class="w-5 h-5"></i>
+                        <span class="text-sm font-medium">ANALYTICS</span>
+                    </button>
+                </nav>
+
+                <div class="mt-8 p-4 bg-neutral-800 border border-neutral-700 rounded">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-2 h-2 bg-white rounded-full pulse-animation"></div>
+                        <span class="text-xs text-white">SYSTEM ONLINE</span>
+                    </div>
+                    <div class="text-xs text-neutral-500">
+                        <div>UPTIME: <span id="uptime">00:00:00</span></div>
+                        <div>THREATS: <span id="threat-count">0</span> ACTIVE</div>
+                        <div>ATTACKS: <span id="attack-count">0</span> DETECTED</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Overlay -->
+        <div id="mobile-overlay" class="fixed inset-0 bg-black/50 z-40 md:hidden hidden" onclick="toggleSidebar()"></div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Top Toolbar -->
+            <div class="h-16 bg-neutral-800 border-b border-neutral-700 flex items-center justify-between px-6">
+                <div class="flex items-center gap-4">
+                    <div class="text-sm text-neutral-400">
+                        CTI COMMAND / <span class="text-orange-500" id="current-section">OVERVIEW</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="text-xs text-neutral-500">LAST UPDATE: <span id="last-update">Loading...</span></div>
+                    <button class="text-neutral-400 hover:text-orange-500 p-2" onclick="refreshData()">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    </button>
+                    <button class="text-neutral-400 hover:text-orange-500 p-2" onclick="showNotifications()">
+                        <i data-lucide="bell" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="flex-1 overflow-auto">
+                <!-- Overview Section -->
+                <div id="overview-section" class="section p-6 space-y-6">
+                    <!-- Main Dashboard Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <!-- Threat Overview -->
+                        <div class="lg:col-span-4 bg-neutral-900 border border-neutral-700 rounded p-4">
+                            <div class="pb-3">
+                                <h3 class="text-sm font-medium text-neutral-300 tracking-wider">THREAT OVERVIEW</h3>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4 mb-6">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-white font-mono" id="critical-threats">0</div>
+                                    <div class="text-xs text-neutral-500">Critical</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-white font-mono" id="high-threats">0</div>
+                                    <div class="text-xs text-neutral-500">High</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-white font-mono" id="medium-threats">0</div>
+                                    <div class="text-xs text-neutral-500">Medium</div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2" id="recent-threats">
+                                <!-- Recent threats will be loaded here -->
+                            </div>
+                        </div>
+
+                        <!-- Attack Activity Log -->
+                        <div class="lg:col-span-4 bg-neutral-900 border border-neutral-700 rounded p-4">
+                            <div class="pb-3">
+                                <h3 class="text-sm font-medium text-neutral-300 tracking-wider">ATTACK ACTIVITY</h3>
+                            </div>
+                            <div class="space-y-3 max-h-80 overflow-y-auto" id="attack-log">
+                                <!-- Attack log will be loaded here -->
+                            </div>
+                        </div>
+
+                        <!-- System Status -->
+                        <div class="lg:col-span-4 bg-neutral-900 border border-neutral-700 rounded p-4">
+                            <div class="pb-3">
+                                <h3 class="text-sm font-medium text-neutral-300 tracking-wider">SYSTEM STATUS</h3>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <!-- System Status Indicator -->
+                                <div class="relative w-32 h-32 mb-4">
+                                    <div class="absolute inset-0 border-2 border-white rounded-full opacity-60 pulse-animation"></div>
+                                    <div class="absolute inset-2 border border-white rounded-full opacity-40"></div>
+                                    <div class="absolute inset-4 border border-white rounded-full opacity-20"></div>
+                                    <!-- Grid lines -->
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <div class="w-full h-px bg-white opacity-30"></div>
+                                    </div>
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <div class="w-px h-full bg-white opacity-30"></div>
+                                    </div>
+                                </div>
+
+                                <div class="text-xs text-neutral-500 space-y-1 w-full font-mono">
+                                    <div class="flex justify-between">
+                                        <span id="system-time">Loading...</span>
+                                    </div>
+                                    <div class="text-white">{"> CTI-BOT v2.1.7 :: ONLINE"}</div>
+                                    <div class="text-orange-500">{"> THREAT DETECTION :: ACTIVE"}</div>
+                                    <div class="text-white">{"> AI ANALYSIS :: RUNNING"}</div>
+                                    <div class="text-neutral-400">
+                                        {'> STATUS >> "All systems operational... monitoring threats"'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Attack Trend Chart -->
+                        <div class="lg:col-span-8 bg-neutral-900 border border-neutral-700 rounded p-4">
+                            <div class="pb-3">
+                                <h3 class="text-sm font-medium text-neutral-300 tracking-wider">ATTACK TREND ANALYSIS</h3>
+                            </div>
+                            <div class="h-48 relative">
+                                <canvas id="attackTrendChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Statistics -->
+                        <div class="lg:col-span-4 bg-neutral-900 border border-neutral-700 rounded p-4">
+                            <div class="pb-3">
+                                <h3 class="text-sm font-medium text-neutral-300 tracking-wider">STATISTICS</h3>
+                            </div>
+                            <div class="grid grid-cols-1 gap-4">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <div class="w-2 h-2 bg-white rounded-full"></div>
+                                        <span class="text-xs text-white font-medium">Successful Detections</span>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <div class="flex justify-between text-xs">
+                                            <span class="text-neutral-400">Critical Threats</span>
+                                            <span class="text-white font-bold font-mono" id="critical-detections">0</span>
+                                        </div>
+                                        <div class="flex justify-between text-xs">
+                                            <span class="text-neutral-400">High Risk</span>
+                                            <span class="text-white font-bold font-mono" id="high-detections">0</span>
+                                        </div>
+                                        <div class="flex justify-between text-xs">
+                                            <span class="text-neutral-400">Medium Risk</span>
+                                            <span class="text-white font-bold font-mono" id="medium-detections">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                                        <span class="text-xs text-red-500 font-medium">Blocked Attacks</span>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <div class="flex justify-between text-xs">
+                                            <span class="text-neutral-400">Ransomware</span>
+                                            <span class="text-white font-bold font-mono" id="blocked-ransomware">0</span>
+                                        </div>
+                                        <div class="flex justify-between text-xs">
+                                            <span class="text-neutral-400">Data Breach</span>
+                                            <span class="text-white font-bold font-mono" id="blocked-breaches">0</span>
+                                        </div>
+                                        <div class="flex justify-between text-xs">
+                                            <span class="text-neutral-400">Phishing</span>
+                                            <span class="text-white font-bold font-mono" id="blocked-phishing">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Other sections will be added here -->
+                <div id="threats-section" class="section hidden p-6">
+                    <h2 class="text-2xl font-bold text-orange-500 mb-6">THREAT INTELLIGENCE</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-neutral-900 border border-neutral-700 rounded p-4">
+                            <h3 class="text-lg font-semibold mb-4">Active Threats</h3>
+                            <div id="active-threats-list">
+                                <!-- Active threats will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="bg-neutral-900 border border-neutral-700 rounded p-4">
+                            <h3 class="text-lg font-semibold mb-4">Threat Actors</h3>
+                            <div id="threat-actors-list">
+                                <!-- Threat actors will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="attacks-section" class="section hidden p-6">
+                    <h2 class="text-2xl font-bold text-orange-500 mb-6">ATTACK ANALYSIS</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-neutral-900 border border-neutral-700 rounded p-4">
+                            <h3 class="text-lg font-semibold mb-4">Recent Attacks</h3>
+                            <div id="recent-attacks-list">
+                                <!-- Recent attacks will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="bg-neutral-900 border border-neutral-700 rounded p-4">
+                            <h3 class="text-lg font-semibold mb-4">Attack Types</h3>
+                            <canvas id="attackTypesChart"></canvas>
+                        </div>
+                        <div class="bg-neutral-900 border border-neutral-700 rounded p-4">
+                            <h3 class="text-lg font-semibold mb-4">Geographic Distribution</h3>
+                            <canvas id="geographicChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="companies-section" class="section hidden p-6">
+                    <h2 class="text-2xl font-bold text-orange-500 mb-6">COMPANY NETWORK</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-neutral-900 border border-neutral-700 rounded p-4">
+                            <h3 class="text-lg font-semibold mb-4">Affected Companies</h3>
+                            <div id="affected-companies-list">
+                                <!-- Affected companies will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="bg-neutral-900 border border-neutral-700 rounded p-4">
+                            <h3 class="text-lg font-semibold mb-4">Sector Analysis</h3>
+                            <canvas id="sectorChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="monitoring-section" class="section hidden p-6">
+                    <h2 class="text-2xl font-bold text-orange-500 mb-6">SYSTEM MONITORING</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-neutral-900 border border-neutral-700 rounded p-4">
+                            <h3 class="text-lg font-semibold mb-4">Performance Metrics</h3>
+                            <div id="performance-metrics">
+                                <!-- Performance metrics will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="bg-neutral-900 border border-neutral-700 rounded p-4">
+                            <h3 class="text-lg font-semibold mb-4">System Health</h3>
+                            <div id="system-health">
+                                <!-- System health will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="analytics-section" class="section hidden p-6">
+                    <h2 class="text-2xl font-bold text-orange-500 mb-6">ADVANCED ANALYTICS</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-neutral-900 border border-neutral-700 rounded p-4">
+                            <h3 class="text-lg font-semibold mb-4">Pattern Analysis</h3>
+                            <div id="pattern-analysis">
+                                <!-- Pattern analysis will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="bg-neutral-900 border border-neutral-700 rounded p-4">
+                            <h3 class="text-lg font-semibold mb-4">Predictive Insights</h3>
+                            <div id="predictive-insights">
+                                <!-- Predictive insights will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Global variables
+        let currentSection = 'overview';
+        let sidebarCollapsed = false;
+        let charts = {};
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDashboard();
+        });
+
+        // Initialize dashboard
+        function initializeDashboard() {
+            loadDashboardData();
+            loadThreatsData();
+            loadAttacksData();
+            loadCompaniesData();
+            loadMonitoringData();
+            loadAnalyticsData();
+            updateSystemTime();
+            setInterval(updateSystemTime, 1000);
+            
+            // Start real-time updates
+            startRealTimeUpdates();
+        }
+
+        // Show section
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(el => el.classList.add('hidden'));
+            
+            // Show selected section
+            document.getElementById(section + '-section').classList.remove('hidden');
+            
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('bg-orange-500', 'text-white');
+                el.classList.add('text-neutral-400', 'hover:text-white', 'hover:bg-neutral-800');
+            });
+            
+            event.target.closest('.nav-item').classList.add('bg-orange-500', 'text-white');
+            event.target.closest('.nav-item').classList.remove('text-neutral-400', 'hover:text-white', 'hover:bg-neutral-800');
+            
+            // Update current section
+            currentSection = section;
+            document.getElementById('current-section').textContent = section.toUpperCase();
+            
+            // Load section data
+            loadSectionData(section);
+        }
+
+        // Toggle sidebar
+        function toggleSidebar() {
+            sidebarCollapsed = !sidebarCollapsed;
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            
+            if (sidebarCollapsed) {
+                sidebar.classList.add('w-16');
+                sidebar.classList.remove('w-70');
+                overlay.classList.add('hidden');
+            } else {
+                sidebar.classList.remove('w-16');
+                sidebar.classList.add('w-70');
+                if (window.innerWidth < 768) {
+                    overlay.classList.remove('hidden');
+                }
+            }
+        }
+
+        // Load dashboard data
+        async function loadDashboardData() {
+            try {
+                const response = await fetch('/api/dashboard-data');
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateDashboardMetrics(data.data);
+                }
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        // Update dashboard metrics
+        function updateDashboardMetrics(data) {
+            // Update threat counts
+            document.getElementById('critical-threats').textContent = data.critical_threats || 0;
+            document.getElementById('high-threats').textContent = data.high_threats || 0;
+            document.getElementById('medium-threats').textContent = data.medium_threats || 0;
+            
+            // Update detection counts
+            document.getElementById('critical-detections').textContent = data.critical_detections || 0;
+            document.getElementById('high-detections').textContent = data.high_detections || 0;
+            document.getElementById('medium-detections').textContent = data.medium_detections || 0;
+            
+            // Update blocked attacks
+            document.getElementById('blocked-ransomware').textContent = data.blocked_ransomware || 0;
+            document.getElementById('blocked-breaches').textContent = data.blocked_breaches || 0;
+            document.getElementById('blocked-phishing').textContent = data.blocked_phishing || 0;
+            
+            // Update system status
+            document.getElementById('threat-count').textContent = data.total_threats || 0;
+            document.getElementById('attack-count').textContent = data.total_attacks || 0;
+            
+            // Update last update time
+            document.getElementById('last-update').textContent = new Date().toLocaleString('tr-TR');
+        }
+
+        // Load section data
+        async function loadSectionData(section) {
+            switch(section) {
+                case 'overview':
+                    await loadOverviewData();
+                    break;
+                case 'threats':
+                    await loadThreatsData();
+                    break;
+                case 'attacks':
+                    await loadAttacksData();
+                    break;
+                case 'companies':
+                    await loadCompaniesData();
+                    break;
+                case 'monitoring':
+                    await loadMonitoringData();
+                    break;
+                case 'analytics':
+                    await loadAnalyticsData();
+                    break;
+            }
+        }
+
+        // Load overview data
+        async function loadOverviewData() {
+            // Load attack trend chart
+            if (!charts.attackTrend) {
+                const ctx = document.getElementById('attackTrendChart').getContext('2d');
+                charts.attackTrend = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        datasets: [{
+                            label: 'Attacks',
+                            data: [12, 19, 3, 5, 2, 3],
+                            borderColor: '#f97316',
+                            backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#9ca3af'
+                                }
+                            },
+                            y: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#9ca3af'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Load threats data
+        async function loadThreatsData() {
+            try {
+                const response = await fetch('/api/tactical/threats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update threats list
+                    const threatsList = document.getElementById('active-threats-list');
+                    threatsList.innerHTML = data.data.map(threat => `
+                        <div class="flex items-center justify-between p-2 bg-neutral-800 rounded mb-2">
+                            <div>
+                                <div class="text-sm text-white">${threat.name}</div>
+                                <div class="text-xs text-neutral-500">${threat.type}</div>
+                            </div>
+                            <div class="text-xs text-orange-500">${threat.severity}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading threats data:', error);
+            }
+        }
+
+        // Load attacks data
+        async function loadAttacksData() {
+            try {
+                const response = await fetch('/api/tactical/attacks');
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update attacks list
+                    const attacksList = document.getElementById('recent-attacks-list');
+                    attacksList.innerHTML = data.data.map(attack => `
+                        <div class="flex items-center justify-between p-2 bg-neutral-800 rounded mb-2">
+                            <div>
+                                <div class="text-sm text-white">${attack.company}</div>
+                                <div class="text-xs text-neutral-500">${attack.sector}</div>
+                            </div>
+                            <div class="text-xs text-orange-500">${attack.date}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading attacks data:', error);
+            }
+        }
+
+        // Load companies data
+        async function loadCompaniesData() {
+            try {
+                const response = await fetch('/api/tactical/companies');
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update companies list
+                    const companiesList = document.getElementById('affected-companies-list');
+                    companiesList.innerHTML = data.data.map(company => `
+                        <div class="flex items-center justify-between p-2 bg-neutral-800 rounded mb-2">
+                            <div>
+                                <div class="text-sm text-white">${company.name}</div>
+                                <div class="text-xs text-neutral-500">${company.country}</div>
+                            </div>
+                            <div class="text-xs text-orange-500">${company.risk_level}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading companies data:', error);
+            }
+        }
+
+        // Load monitoring data
+        async function loadMonitoringData() {
+            try {
+                const response = await fetch('/api/monitoring/performance');
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update performance metrics
+                    const metricsDiv = document.getElementById('performance-metrics');
+                    metricsDiv.innerHTML = `
+                        <div class="space-y-4">
+                            <div class="flex justify-between">
+                                <span class="text-sm text-neutral-400">Response Time</span>
+                                <span class="text-sm text-white font-mono">${data.data.avg_response_time_ms}ms</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-neutral-400">Memory Usage</span>
+                                <span class="text-sm text-white font-mono">${data.data.avg_memory_usage_percent}%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-neutral-400">CPU Usage</span>
+                                <span class="text-sm text-white font-mono">${data.data.avg_cpu_usage_percent}%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-neutral-400">Error Rate</span>
+                                <span class="text-sm text-white font-mono">${data.data.error_rate_percent}%</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading monitoring data:', error);
+            }
+        }
+
+        // Load analytics data
+        async function loadAnalyticsData() {
+            try {
+                const response = await fetch('/api/analytics/insights');
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update pattern analysis
+                    const patternDiv = document.getElementById('pattern-analysis');
+                    if (patternDiv) {
+                        patternDiv.innerHTML = data.data.insights.map(insight => `
+                            <div class="p-3 bg-neutral-800 rounded mb-2">
+                                <div class="text-sm text-white">${insight.title}</div>
+                                <div class="text-xs text-neutral-500">${insight.description}</div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading analytics data:', error);
+            }
+        }
+
+        // Load threats data
+        async function loadThreatsData() {
+            try {
+                const response = await fetch('/api/tactical/threats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update threats list
+                    const threatsList = document.getElementById('active-threats-list');
+                    if (threatsList) {
+                        threatsList.innerHTML = data.data.map(threat => `
+                            <div class="flex items-center justify-between p-2 bg-neutral-800 rounded hover:bg-neutral-700 transition-colors cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-2 h-2 rounded-full ${threat.severity === 'Critical' ? 'bg-red-500' : threat.severity === 'High' ? 'bg-orange-500' : 'bg-white'}"></div>
+                                    <div>
+                                        <div class="text-xs text-white font-mono">${threat.name}</div>
+                                        <div class="text-xs text-neutral-500">${threat.type}</div>
+                                    </div>
+                                </div>
+                                <div class="text-xs text-neutral-500">${threat.last_seen}</div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading threats data:', error);
+            }
+        }
+
+        // Load attacks data
+        async function loadAttacksData() {
+            try {
+                const response = await fetch('/api/tactical/attacks');
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update attacks list
+                    const attacksList = document.getElementById('recent-attacks-list');
+                    if (attacksList) {
+                        attacksList.innerHTML = data.data.map(attack => `
+                            <div class="text-xs border-l-2 border-orange-500 pl-3 hover:bg-neutral-800 p-2 rounded transition-colors">
+                                <div class="text-neutral-500 font-mono">${attack.date}</div>
+                                <div class="text-white">
+                                    Company <span class="text-orange-500 font-mono">${attack.company}</span> attacked in 
+                                    <span class="text-white font-mono">${attack.country}</span> by 
+                                    <span class="text-orange-500 font-mono">${attack.threat_actor}</span>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading attacks data:', error);
+            }
+        }
+
+        // Load companies data
+        async function loadCompaniesData() {
+            try {
+                const response = await fetch('/api/tactical/companies');
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update companies list
+                    const companiesList = document.getElementById('affected-companies-list');
+                    if (companiesList) {
+                        companiesList.innerHTML = data.data.map(company => `
+                            <div class="flex items-center justify-between p-2 bg-neutral-800 rounded hover:bg-neutral-700 transition-colors cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-2 h-2 rounded-full ${company.risk_level === 'Critical' ? 'bg-red-500' : company.risk_level === 'High' ? 'bg-orange-500' : 'bg-white'}"></div>
+                                    <div>
+                                        <div class="text-xs text-white font-mono">${company.name}</div>
+                                        <div class="text-xs text-neutral-500">${company.sector} (${company.country})</div>
+                                    </div>
+                                </div>
+                                <div class="text-xs text-neutral-500">${company.last_attack}</div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading companies data:', error);
+            }
+        }
+
+        // Update system time
+        function updateSystemTime() {
+            const now = new Date();
+            document.getElementById('system-time').textContent = now.toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+        }
+
+        // Refresh data
+        function refreshData() {
+            loadDashboardData();
+            if (currentSection !== 'overview') {
+                loadSectionData(currentSection);
+            }
+        }
+
+        // Show notifications
+        function showNotifications() {
+            alert('Notifications feature coming soon!');
+        }
+
+        // Start real-time updates
+        function startRealTimeUpdates() {
+            setInterval(() => {
+                loadDashboardData();
+                loadThreatsData();
+                loadAttacksData();
+                loadCompaniesData();
+                loadMonitoringData();
+                loadAnalyticsData();
+            }, 30000); // Update every 30 seconds
+        }
+
+        // Sidebar toggle event
+        document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
+    </script>
+</body>
+</html>

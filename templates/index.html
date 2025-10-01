@@ -1,0 +1,915 @@
+{% extends "base.html" %}
+
+{% block title %}CTI-BOT Dashboard - Main Page{% endblock %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">Cyber Threat Intelligence Dashboard</h1>
+    <p class="text-gray-600">Real-time cybersecurity threats and attack analysis</p>
+</div>
+
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Attacks -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Total Attacks</dt>
+                        <dd class="text-lg font-medium text-gray-900" id="total-attacks">-</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Affected Countries -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Affected Countries</dt>
+                        <dd class="text-lg font-medium text-gray-900" id="total-countries">-</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Etkilenen Şirketler -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Affected Companies</dt>
+                        <dd class="text-lg font-medium text-gray-900" id="total-companies">-</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Number of Sectors -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Number of Sectors</dt>
+                        <dd class="text-lg font-medium text-gray-900" id="total-sectors">-</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Threat Actors -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Active Threat Actors</dt>
+                        <dd class="text-lg font-medium text-gray-900" id="total-threat-actors">-</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Risk Level -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Overall Risk Level</dt>
+                        <dd class="text-lg font-medium text-gray-900" id="risk-level">-</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Charts -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Geographic Distribution Map -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Geographic Distribution</h3>
+        <div class="chart-container">
+            <canvas id="geographic-chart"></canvas>
+        </div>
+        <!-- world-map removed: was creating unnecessary space -->
+    </div>
+    
+    <!-- Sector Distribution -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Sector Analysis</h3>
+        <div class="chart-container">
+            <canvas id="sector-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Attack Trends and Threat Actors -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Attack Trends -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Attack Trends</h3>
+        <div class="chart-container">
+            <canvas id="attack-trends-chart"></canvas>
+        </div>
+    </div>
+
+    <!-- Threat Actors -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Threat Actors</h3>
+        <div class="chart-container">
+            <canvas id="threat-actors-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Charts -->
+<div class="grid grid-cols-1 lg:grid-cols-1 gap-6 mb-8">
+    <!-- Most Active Threat Actors -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Most Active Threat Actors</h3>
+        <div class="chart-container">
+            <canvas id="most-active-threat-actor-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Attacks Table -->
+<div class="bg-white shadow rounded-lg">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Recent Attacks</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <div class="flex items-center justify-between px-6 py-3">
+            <div class="text-sm text-gray-500" id="attacks-count"></div>
+            <div class="space-x-2">
+                <button id="prev-page" class="px-3 py-1 bg-gray-100 rounded text-sm">Previous</button>
+                <button id="next-page" class="px-3 py-1 bg-gray-100 rounded text-sm">Next</button>
+            </div>
+        </div>
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sector</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Country</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Threat Actor</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Risk Level</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                </tr>
+    </thead>
+            <tbody class="bg-white divide-y divide-gray-200" id="recent-attacks-table">
+                <!-- Veriler JavaScript ile doldurulacak -->
+    </tbody>
+</table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// İlk loadDashboardData fonksiyonu kaldırıldı - aşağıdaki versiyon kullanılıyor
+
+// Sektör grafiği - İyileştirilmiş versiyon
+function createSectorChart(data) {
+    console.log('🏢 Creating sector chart with data:', data);
+    
+    // Destroy existing chart
+    if (window.sectorChart) {
+        console.log('🗑️ Destroying existing sector chart...');
+        window.sectorChart.destroy();
+        window.sectorChart = null;
+    }
+    
+    if (!data || Object.keys(data).length === 0) {
+        console.log('⚠️ No sector data, showing sample data');
+        // Show sample data
+        data = {
+            'Technology': 15,
+            'Finance': 12,
+            'Healthcare': 8,
+            'Retail': 6,
+            'Banking': 4,
+            'Education': 3
+        };
+    }
+    
+    // Process data - get top 6 categories
+    const sortedData = Object.entries(data).sort((a, b) => b[1] - a[1]);
+    const topCategories = sortedData.slice(0, 6);
+    const otherCount = sortedData.slice(6).reduce((sum, [, count]) => sum + count, 0);
+    
+    const labels = topCategories.map(([label]) => label);
+    const values = topCategories.map(([, count]) => count);
+    
+    console.log('🏢 Sector chart data:', { labels, values, otherCount });
+    
+    if (otherCount > 0) {
+        labels.push('Other');
+        values.push(otherCount);
+    }
+    
+    // Color palette
+    const colors = [
+        '#EF4444', '#F97316', '#EAB308', '#22C55E', '#06B6D4', '#3B82F6', '#8B5CF6'
+    ];
+    
+    const ctx = document.getElementById('sector-chart').getContext('2d');
+    window.sectorChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: colors.slice(0, labels.length),
+                borderWidth: 2,
+                borderColor: '#1f2937'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '60%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true,
+                        font: {
+                            size: 11
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return context.label + ': ' + context.parsed.toLocaleString() + ' kayıt (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Attack trends chart
+function createAttackTrendsChart(data) {
+    // Destroy existing chart
+    if (window.attackTrendsChart) {
+        console.log('🗑️ Destroying existing attack trends chart...');
+        window.attackTrendsChart.destroy();
+        window.attackTrendsChart = null;
+    }
+    
+    // Filter attack types
+    const attackTypes = ['Ransomware', 'DDoS', 'Malware', 'Phishing', 'Data Breach'];
+    const filteredData = Object.entries(data).filter(([key]) => attackTypes.includes(key));
+    
+    if (filteredData.length === 0) {
+        // If no attack types, get top 5 values
+        const sortedData = Object.entries(data).sort((a, b) => b[1] - a[1]);
+        filteredData.push(...sortedData.slice(0, 5));
+    }
+    if (filteredData.length === 0) {
+        // Last resort: placeholder for empty data
+        filteredData = [['No Data', 0]];
+    }
+    
+    const labels = filteredData.map(([label]) => label);
+    const values = filteredData.map(([, count]) => count);
+    
+    // Color palette
+    const colors = [
+        '#EF4444', '#F97316', '#EAB308', '#22C55E', '#06B6D4'
+    ];
+    
+    const canvas = document.getElementById('attack-trends-chart');
+    if (!canvas) {
+        console.error('attack-trends-chart canvas not found');
+        return;
+    }
+    const ctx = canvas.getContext('2d');
+    window.attackTrendsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: colors.slice(0, labels.length),
+                borderWidth: 1,
+                borderColor: '#1f2937'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.parsed.y.toLocaleString() + ' kayıt';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 45
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Threat actors chart
+function createThreatActorsChart(data) {
+    console.log('🎭 Creating threat actors chart with data:', data);
+    
+    // Destroy existing chart
+    if (window.threatActorsChart) {
+        console.log('🗑️ Destroying existing threat actors chart...');
+        window.threatActorsChart.destroy();
+        window.threatActorsChart = null;
+    }
+    
+    if (!data || Object.keys(data).length === 0) {
+        console.log('⚠️ No threat actors data, showing sample data');
+        // Show sample data
+        data = {
+            'LockBit': 8,
+            'Conti': 6,
+            'REvil': 5,
+            'Maze': 4,
+            'Ryuk': 3,
+            'Sodinokibi': 2,
+            'Babuk': 2,
+            'Avaddon': 1
+        };
+    }
+    
+    // Get top 8 threat actors
+    const sortedData = Object.entries(data).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    const labels = sortedData.map(([label]) => label);
+    const values = sortedData.map(([, count]) => count);
+    
+    console.log('🎭 Threat actors chart data:', { labels, values });
+    
+    // Color palette
+    const colors = [
+        '#8B5CF6', '#EC4899', '#EF4444', '#F97316', '#EAB308', '#22C55E', '#06B6D4', '#3B82F6'
+    ];
+    
+    const ctx = document.getElementById('threat-actors-chart').getContext('2d');
+    window.threatActorsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: colors.slice(0, labels.length),
+                borderWidth: 1,
+                borderColor: '#1f2937'
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.parsed.x.toLocaleString() + ' kayıt';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Most active threat actors chart
+function createMostActiveThreatActorsChart(data) {
+    console.log('🎭 Creating most active threat actors chart with data:', data);
+    
+    // Destroy existing chart
+    if (window.mostActiveThreatActorChart) {
+        console.log('🗑️ Destroying existing most active threat actor chart...');
+        window.mostActiveThreatActorChart.destroy();
+        window.mostActiveThreatActorChart = null;
+    }
+    
+    if (!data || Object.keys(data).length === 0) {
+        console.log('⚠️ No most active threat actor data, showing sample data');
+        // Show sample data
+        data = {
+            'LockBit': 8,
+            'Conti': 6,
+            'REvil': 5,
+            'Maze': 4,
+            'Ryuk': 3
+        };
+    }
+    
+    // Get top 5 threat actors
+    const sortedData = Object.entries(data).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const labels = sortedData.map(([label]) => label);
+    const values = sortedData.map(([, count]) => count);
+    
+    console.log('🎭 Most active threat actors chart data:', { labels, values });
+    
+    const ctx = document.getElementById('most-active-threat-actor-chart').getContext('2d');
+    window.mostActiveThreatActorChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: [
+                    '#EF4444', '#F97316', '#EAB308', '#22C55E', '#06B6D4'
+                ],
+                borderWidth: 2,
+                borderColor: '#1f2937'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '60%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true,
+                        font: {
+                            size: 11
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return context.label + ': ' + context.parsed.toLocaleString() + ' saldırı (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Timeline chart
+function createTimelineChart(data) {
+    // Destroy existing chart
+    if (window.timelineChart) {
+        console.log('🗑️ Destroying existing timeline chart...');
+        window.timelineChart.destroy();
+        window.timelineChart = null;
+    }
+    
+    const ctx = document.getElementById('timeline-chart').getContext('2d');
+    window.timelineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Saldırı Sayısı',
+                data: data.data,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+// Threat actor chart
+function createThreatActorChart(data) {
+    // Destroy existing chart
+    if (window.threatActorChart) {
+        console.log('🗑️ Destroying existing threat actor chart...');
+        window.threatActorChart.destroy();
+        window.threatActorChart = null;
+    }
+    
+    const ctx = document.getElementById('threat-actor-chart').getContext('2d');
+    window.threatActorChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(data),
+            datasets: [{
+                label: 'Saldırı Sayısı',
+                data: Object.values(data),
+                backgroundColor: '#f59e0b',
+                borderColor: '#d97706',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+// Dünya haritası
+function createWorldMap(data) {
+    const map = L.map('world-map').setView([20, 0], 2);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    // Mock veri ile harita işaretçileri
+    const markers = [
+        { lat: 39.9334, lng: 32.8597, country: 'TR', attacks: data.TR || 0 },
+        { lat: 39.8283, lng: -98.5795, country: 'US', attacks: data.US || 0 },
+        { lat: 55.3781, lng: -3.4360, country: 'UK', attacks: data.UK || 0 },
+        { lat: 51.1657, lng: 10.4515, country: 'DE', attacks: data.DE || 0 },
+        { lat: 46.2276, lng: 2.2137, country: 'FR', attacks: data.FR || 0 }
+    ];
+    
+    markers.forEach(marker => {
+        if (marker.attacks > 0) {
+            L.circleMarker([marker.lat, marker.lng], {
+                radius: Math.min(marker.attacks / 10, 20),
+                fillColor: '#ef4444',
+                color: '#dc2626',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.7
+            }).addTo(map).bindPopup(`${marker.country}: ${marker.attacks} saldırı`);
+        }
+    });
+}
+
+// Son saldırılar tablosunu güncelle
+function updateRecentAttacksTable(attacks) {
+    const tbody = document.getElementById('recent-attacks-table');
+    tbody.innerHTML = '';
+    
+    attacks.forEach(attack => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class=\"px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900\">${attack.company || 'Unknown'}</td>
+            <td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-500\">${attack.sector || 'Unknown'}</td>
+            <td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-500\">${attack.country || 'Unknown'}</td>
+            <td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-500\">${attack.threat_actor || 'Unknown'}</td>
+            <td class=\"px-6 py-4 whitespace-nowrap\">
+                <span class=\"px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRiskClass(attack.risk_level)}\">
+                    ${attack.risk_level || 'Medium'}
+                </span>
+            </td>
+            <td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-500\">${attack.date || 'Unknown'}</td>
+            <td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-500\">
+                <div class="flex space-x-2">
+                    <button onclick=\"viewCompany('${attack.company || ''}')\" class=\"text-blue-600 hover:text-blue-800 text-xs\">
+                        Company
+                    </button>
+                    <button onclick=\"viewSector('${attack.sector || ''}')\" class=\"text-green-600 hover:text-green-800 text-xs\">
+                        Sector
+                    </button>
+                    <button onclick=\"viewThreatActor('${attack.threat_actor || ''}')\" class=\"text-red-600 hover:text-red-800 text-xs\">
+                        Actor
+                    </button>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Risk level CSS class
+function getRiskClass(riskLevel) {
+    switch(riskLevel) {
+        case 'Low': return 'risk-low';
+        case 'Medium': return 'risk-medium';
+        case 'High': return 'risk-high';
+        case 'Critical': return 'risk-critical';
+        default: return 'risk-medium';
+    }
+}
+
+// Clear error messages
+function clearErrors() {
+    const existingErrors = document.querySelectorAll('.fixed.top-4.right-4');
+    existingErrors.forEach(error => error.remove());
+}
+
+// Load dashboard data
+async function loadDashboardData() {
+    try {
+        console.log('Loading dashboard data...');
+        
+        // Clear previous error messages
+        clearErrors();
+        
+        // Get dashboard data
+        const response = await fetch('/api/dashboard-data');
+        console.log('API Response status:', response.status);
+        
+        const result = await response.json();
+        console.log('API Response data:', result);
+        
+        if (result.success) {
+            const data = result.data;
+            
+            // Update statistics
+            const elements = {
+                'total-attacks': data.overview?.total_attacks || 0,
+                'total-countries': data.overview?.total_countries || 0,
+                'total-companies': data.overview?.total_companies || 0,
+                'total-sectors': data.overview?.total_sectors || 0,
+                'total-threat-actors': data.overview?.total_threat_actors || 0,
+                'risk-level': data.risk_level || 'Unknown'
+            };
+            
+            for (const [id, value] of Object.entries(elements)) {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = value;
+                    console.log(`Updated ${id}: ${value}`);
+                } else {
+                    console.error(`Element not found: ${id}`);
+                }
+            }
+            
+            // Create charts
+            try {
+                createGeographicChart(data.geographic?.top_countries || {});
+                console.log('✅ Geographic chart created');
+            } catch (error) {
+                console.error('❌ Geographic chart error:', error);
+            }
+            
+            try {
+                console.log('📊 Sector data:', data.sector);
+                createSectorChart(data.sector?.sector_counts || {});
+                console.log('✅ Sector chart created');
+            } catch (error) {
+                console.error('❌ Sector chart error:', error);
+            }
+            
+            try {
+                console.log('📊 Attack trends data:', data.attack_trends);
+                createAttackTrendsChart(data.attack_trends?.attack_types || {});
+                console.log('✅ Attack trends chart created');
+            } catch (error) {
+                console.error('❌ Attack trends chart error:', error);
+            }
+            
+            try {
+                console.log('📊 Threat actors data:', data.threat_actors);
+                createThreatActorsChart(data.threat_actors?.threat_actor_counts || {});
+                console.log('✅ Threat actors chart created');
+            } catch (error) {
+                console.error('❌ Threat actors chart error:', error);
+            }
+            
+            try {
+                console.log('📊 Most active threat actors data:', data.threat_actors);
+                createMostActiveThreatActorsChart(data.threat_actors?.threat_actor_counts || {});
+                console.log('✅ Most active threat actors chart created');
+            } catch (error) {
+                console.error('❌ Most active threat actors chart error:', error);
+            }
+            
+            // Update map
+            updateMap(data.geographic?.country_counts || {});
+            
+            // Load recent attacks
+            loadRecentAttacks();
+            
+            // Show success message (briefly)
+            console.log('Dashboard data loaded successfully!');
+            
+        } else {
+            console.error('Failed to load dashboard data:', result.error);
+            // Temporarily disable error message
+            // if (result.error && result.error !== 'undefined') {
+            //     showError('Dashboard verileri yüklenemedi!');
+            // }
+        }
+    } catch (error) {
+        console.error('Dashboard yükleme hatası:', error);
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
+        // Hata mesajını geçici olarak devre dışı bırak
+        // showError('Dashboard yükleme hatası!');
+    }
+}
+
+// Coğrafi dağılım grafiği
+function createGeographicChart(data) {
+    const ctx = document.getElementById('geographic-chart');
+    if (!ctx) return;
+    
+    // Destroy existing chart
+    if (window.geographicChart) {
+        console.log('🗑️ Destroying existing geographic chart...');
+        window.geographicChart.destroy();
+        window.geographicChart = null;
+    }
+    
+    const chartCtx = ctx.getContext('2d');
+    const countries = Object.keys(data);
+    const values = Object.values(data);
+    
+    window.geographicChart = new Chart(chartCtx, {
+        type: 'bar',
+        data: {
+            labels: countries,
+            datasets: [{
+                label: 'Saldırı Sayısı',
+                data: values,
+                backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+// Map update
+function updateMap(data) {
+    // Simple map update - more advanced map library can be added
+    console.log('Map data updated:', data);
+}
+
+// First showError function removed - using the version below
+
+// Load recent attacks
+let recentPage = 1;
+const recentPerPage = 10;
+
+async function loadRecentAttacks() {
+    try {
+        const response = await fetch(`/api/recent-attacks?page=${recentPage}&per_page=${recentPerPage}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            updateRecentAttacksTable(result.data || []);
+            const total = result.pagination?.total || 0;
+            const countEl = document.getElementById('attacks-count');
+            if (countEl) {
+                const start = (recentPage - 1) * recentPerPage + 1;
+                const end = Math.min(recentPage * recentPerPage, total);
+                countEl.textContent = `${start}-${end} / ${total}`;
+            }
+        }
+    } catch (error) {
+        console.error('Son saldırılar yüklenemedi:', error);
+    }
+}
+
+// Hata mesajı göster
+function showError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+    errorDiv.textContent = message;
+    document.body.appendChild(errorDiv);
+    
+    setTimeout(() => {
+        document.body.removeChild(errorDiv);
+    }, 5000);
+}
+
+// Sayfa yüklendiğinde dashboard verilerini yükle
+// Detay sayfalarına yönlendirme fonksiyonları
+function viewCompany(companyName) {
+    window.location.href = `/company-detail?name=${encodeURIComponent(companyName)}`;
+}
+
+function viewSector(sectorName) {
+    window.location.href = `/sector-analysis?sector=${encodeURIComponent(sectorName)}`;
+}
+
+function viewThreatActor(threatActorName) {
+    window.location.href = `/threat-actor-detail?name=${encodeURIComponent(threatActorName)}`;
+}
+
+document.addEventListener('DOMContentLoaded', loadDashboardData);
+
+// Pagination controls
+document.addEventListener('click', function(e) {
+    if (e.target && e.target.id === 'prev-page') {
+        if (recentPage > 1) {
+            recentPage -= 1;
+            loadRecentAttacks();
+        }
+    }
+    if (e.target && e.target.id === 'next-page') {
+        recentPage += 1;
+        loadRecentAttacks();
+    }
+});
+</script>
+{% endblock %}

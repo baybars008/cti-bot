@@ -1,0 +1,465 @@
+{% extends "base.html" %}
+
+{% block title %}CTI-BOT Dashboard - Filtering{% endblock %}
+
+{% block content %}
+<!-- Filtering Header -->
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">Advanced Filtering</h1>
+    <p class="text-gray-600">Analyze attack data with detailed filters</p>
+</div>
+
+<!-- Filter Panel -->
+<div class="bg-white shadow rounded-lg p-6 mb-8">
+    <h3 class="text-lg font-medium text-gray-900 mb-4">Filter Options</h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Date Range -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+            <div class="space-y-2">
+                <input type="date" id="start-date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="date" id="end-date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </div>
+        
+        <!-- Country Selection -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Country</label>
+            <select id="country-filter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All Countries</option>
+                <option value="TR">Turkey</option>
+                <option value="US">United States</option>
+                <option value="UK">United Kingdom</option>
+                <option value="DE">Germany</option>
+                <option value="FR">France</option>
+            </select>
+        </div>
+        
+        <!-- Sector Selection -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Sector</label>
+            <select id="sector-filter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All Sectors</option>
+                <option value="finance">Finance</option>
+                <option value="healthcare">Healthcare</option>
+                <option value="education">Education</option>
+                <option value="technology">Technology</option>
+                <option value="ecommerce">E-commerce</option>
+            </select>
+        </div>
+        
+        <!-- Risk Level -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Risk Level</label>
+            <select id="risk-filter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All Risk Levels</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+            </select>
+        </div>
+    </div>
+    
+    <!-- Filter Buttons -->
+    <div class="mt-6 flex justify-between">
+        <button onclick="clearFilters()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500">
+            Clear Filters
+        </button>
+        <button onclick="applyFilters()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            Apply Filters
+        </button>
+    </div>
+</div>
+
+<!-- Filtered Results -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Result Statistics -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Filter Results</h3>
+        <div class="space-y-4">
+            <div class="flex justify-between">
+                <span class="text-sm text-gray-500">Total Attacks:</span>
+                <span class="text-sm font-medium text-gray-900" id="filtered-total">-</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-sm text-gray-500">Affected Countries:</span>
+                <span class="text-sm font-medium text-gray-900" id="filtered-countries">-</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-sm text-gray-500">Active Threat Actors:</span>
+                <span class="text-sm font-medium text-gray-900" id="filtered-threat-actors">-</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Risk Distribution -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Risk Distribution</h3>
+        <div class="chart-container">
+            <canvas id="risk-distribution-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Filtered Attacks Table -->
+<div class="bg-white shadow rounded-lg">
+    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+        <h3 class="text-lg font-medium text-gray-900">Filtered Attacks</h3>
+        <div class="flex space-x-2">
+            <button onclick="exportFilteredData()" class="px-3 py-1 text-sm text-blue-600 hover:text-blue-800">
+                CSV Export
+            </button>
+            <button onclick="exportFilteredData('json')" class="px-3 py-1 text-sm text-green-600 hover:text-green-800">
+                JSON Export
+            </button>
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sector</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Country</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Threat Actor</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Risk Level</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200" id="filtered-attacks-table">
+                <!-- Data will be populated by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+        <div class="text-sm text-gray-500">
+            <span id="pagination-info">1-10 / 100 results</span>
+        </div>
+        <div class="flex space-x-2">
+            <button onclick="previousPage()" class="px-3 py-1 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50" id="prev-btn" disabled>
+                Previous
+            </button>
+            <button onclick="nextPage()" class="px-3 py-1 text-sm text-gray-500 hover:text-gray-700" id="next-btn">
+                Next
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentPage = 1;
+let pageSize = 10;
+let totalResults = 0;
+let filteredData = [];
+
+// Apply default filters when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Set today's date as default
+    const today = new Date().toISOString().split('T')[0];
+    const lastMonth = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    
+    document.getElementById('end-date').value = today;
+    document.getElementById('start-date').value = lastMonth;
+    
+    applyFilters();
+});
+
+// Apply filters
+async function applyFilters() {
+    try {
+        const filters = {
+            start_date: document.getElementById('start-date').value,
+            end_date: document.getElementById('end-date').value,
+            country: document.getElementById('country-filter').value,
+            sector: document.getElementById('sector-filter').value,
+            risk_level: document.getElementById('risk-filter').value
+        };
+        
+        // Fetch filtered data from API
+        const response = await fetch('/api/filtered-attacks?' + new URLSearchParams(filters));
+        const data = await response.json();
+        
+        if (data.success) {
+            filteredData = data.data;
+            totalResults = filteredData.length;
+            currentPage = 1;
+            
+            console.log(`🔍 Filtering successful: ${totalResults} records found`);
+            console.log('Filtered data:', filteredData.slice(0, 3)); // First 3 records
+            
+            updateFilteredResults();
+            updateFilteredTable();
+            updatePagination();
+        } else {
+            console.error('Filtering error:', data.error);
+        }
+    } catch (error) {
+        console.error('Error during filtering:', error);
+    }
+}
+
+// Clear filters
+function clearFilters() {
+    document.getElementById('start-date').value = '';
+    document.getElementById('end-date').value = '';
+    document.getElementById('country-filter').value = '';
+    document.getElementById('sector-filter').value = '';
+    document.getElementById('risk-filter').value = '';
+    
+    applyFilters();
+}
+
+// Update filtered results
+function updateFilteredResults() {
+    console.log('📊 Updating filtered results...');
+    console.log('Total results:', totalResults);
+    console.log('Filtered data length:', filteredData.length);
+    
+    // Update total attack count
+    const totalElement = document.getElementById('filtered-total');
+    if (totalElement) {
+        totalElement.textContent = totalResults.toLocaleString();
+        console.log('✅ Total attacks updated:', totalResults);
+    } else {
+        console.error('❌ filtered-total element not found');
+    }
+    
+    // Count unique countries
+    const uniqueCountries = new Set(filteredData.map(item => item.country)).size;
+    const countriesElement = document.getElementById('filtered-countries');
+    if (countriesElement) {
+        countriesElement.textContent = uniqueCountries;
+        console.log('✅ Country count updated:', uniqueCountries);
+    } else {
+        console.error('❌ filtered-countries element not found');
+    }
+    
+    // Count unique threat actors
+    const uniqueThreatActors = new Set(filteredData.map(item => item.threat_actor)).size;
+    const threatActorsElement = document.getElementById('filtered-threat-actors');
+    if (threatActorsElement) {
+        threatActorsElement.textContent = uniqueThreatActors;
+        console.log('✅ Threat actor count updated:', uniqueThreatActors);
+    } else {
+        console.error('❌ filtered-threat-actors element not found');
+    }
+    
+    // Create risk distribution chart
+    createRiskDistributionChart();
+}
+
+// Risk distribution chart
+function createRiskDistributionChart() {
+    console.log('📊 Creating risk distribution chart...');
+    console.log('Filtered data for chart:', filteredData.length);
+    
+    const riskCounts = {};
+    filteredData.forEach(item => {
+        const risk = item.risk_level || 'Unknown';
+        riskCounts[risk] = (riskCounts[risk] || 0) + 1;
+    });
+    
+    console.log('Risk counts:', riskCounts);
+    
+    const chartElement = document.getElementById('risk-distribution-chart');
+    if (!chartElement) {
+        console.error('❌ risk-distribution-chart element not found');
+        return;
+    }
+    
+    // Destroy existing chart
+    if (window.riskChart) {
+        console.log('🗑️ Destroying existing chart...');
+        window.riskChart.destroy();
+        window.riskChart = null;
+    }
+    
+    const ctx = chartElement.getContext('2d');
+    window.riskChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(riskCounts),
+            datasets: [{
+                data: Object.values(riskCounts),
+                backgroundColor: [
+                    '#10b981', // Low - Green
+                    '#f59e0b', // Medium - Orange
+                    '#ef4444', // High - Red
+                    '#7c2d12'  // Critical - Dark Red
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    console.log('✅ Risk distribution chart created');
+}
+
+// Update filtered table
+function updateFilteredTable() {
+    console.log('📋 Updating filtered table...');
+    console.log('Filtered data length:', filteredData.length);
+    console.log('Current page:', currentPage);
+    console.log('Page size:', pageSize);
+    
+    const tbody = document.getElementById('filtered-attacks-table');
+    if (!tbody) {
+        console.error('❌ filtered-attacks-table element not found');
+        return;
+    }
+    
+    tbody.innerHTML = '';
+    
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const pageData = filteredData.slice(startIndex, endIndex);
+    
+    console.log(`📄 Page data: ${pageData.length} records (${startIndex}-${endIndex})`);
+    
+    if (pageData.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                No filtered data found
+            </td>
+        `;
+        tbody.appendChild(row);
+        console.log('⚠️ No filtered data found');
+        return;
+    }
+    
+    pageData.forEach((attack, index) => {
+        console.log(`📝 Satır ${index + 1}:`, attack);
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${attack.company}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${attack.sector}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${attack.country}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${attack.threat_actor}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRiskClass(attack.risk_level)}">
+                    ${attack.risk_level}
+                </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${attack.date}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <button onclick="viewDetails('${attack.company}')" class="text-blue-600 hover:text-blue-800">
+                    Details
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+    
+    console.log(`✅ Table updated: ${pageData.length} rows added`);
+}
+
+// Update pagination
+function updatePagination() {
+    const startIndex = (currentPage - 1) * pageSize + 1;
+    const endIndex = Math.min(currentPage * pageSize, totalResults);
+    
+    document.getElementById('pagination-info').textContent = `${startIndex}-${endIndex} / ${totalResults} results`;
+    
+    document.getElementById('prev-btn').disabled = currentPage === 1;
+    document.getElementById('next-btn').disabled = endIndex >= totalResults;
+}
+
+// Previous page
+function previousPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        updateFilteredTable();
+        updatePagination();
+    }
+}
+
+// Next page
+function nextPage() {
+    const maxPage = Math.ceil(totalResults / pageSize);
+    if (currentPage < maxPage) {
+        currentPage++;
+        updateFilteredTable();
+        updatePagination();
+    }
+}
+
+// View details
+function viewDetails(company) {
+    alert(`${company} details will be added soon!`);
+}
+
+// Export process
+function exportFilteredData(format = 'csv') {
+    if (format === 'csv') {
+        exportToCSV();
+    } else {
+        exportToJSON();
+    }
+}
+
+// CSV export
+function exportToCSV() {
+    const headers = ['Company', 'Sector', 'Country', 'Threat Actor', 'Risk Level', 'Date'];
+    const csvContent = [
+        headers.join(','),
+        ...filteredData.map(item => [
+            item.company,
+            item.sector,
+            item.country,
+            item.threat_actor,
+            item.risk_level,
+            item.date
+        ].join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'filtered_attacks.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
+// JSON export
+function exportToJSON() {
+    const jsonContent = JSON.stringify(filteredData, null, 2);
+    const blob = new Blob([jsonContent], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'filtered_attacks.json';
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
+// Risk level CSS class
+function getRiskClass(riskLevel) {
+    switch(riskLevel) {
+        case 'Low': return 'risk-low';
+        case 'Medium': return 'risk-medium';
+        case 'High': return 'risk-high';
+        case 'Critical': return 'risk-critical';
+        default: return 'risk-medium';
+    }
+}
+</script>
+{% endblock %}

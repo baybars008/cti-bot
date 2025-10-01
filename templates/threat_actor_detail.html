@@ -1,0 +1,518 @@
+{% extends "base.html" %}
+
+{% block title %}CTI-BOT Dashboard - Tehdit Aktörü Detayı{% endblock %}
+
+{% block content %}
+<!-- Tehdit Aktörü Detay Başlığı -->
+<div class="mb-8">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2" id="threat-actor-name">Tehdit Aktörü</h1>
+            <p class="text-gray-600" id="threat-actor-description">Tehdit aktörü detay bilgileri ve analizi</p>
+        </div>
+        <div class="flex space-x-4">
+            <button onclick="exportThreatActorData()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <span>Export</span>
+            </button>
+            <button onclick="goBack()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-200 flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                <span>Geri</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Tehdit Aktörü İstatistik Kartları -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Toplam Saldırı -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Toplam Saldırı</dt>
+                        <dd class="text-lg font-medium text-gray-900" id="total-attacks">-</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hedef Sektörler -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Hedef Sektörler</dt>
+                        <dd class="text-lg font-medium text-gray-900" id="target-sectors">-</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aktif Ülkeler -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Aktif Ülkeler</dt>
+                        <dd class="text-lg font-medium text-gray-900" id="active-countries">-</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tehdit Seviyesi -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Tehdit Seviyesi</dt>
+                        <dd class="text-lg font-medium text-gray-900" id="threat-level">-</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ana Grafikler -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <!-- Sektörel Dağılım -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Hedef Sektörler</h3>
+        <div class="chart-container">
+            <canvas id="sector-distribution-chart"></canvas>
+        </div>
+    </div>
+
+    <!-- Coğrafi Dağılım -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Coğrafi Dağılım</h3>
+        <div class="chart-container">
+            <canvas id="geographic-distribution-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Detaylı Analiz -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+    <!-- Saldırı Zaman Çizelgesi -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Saldırı Zaman Çizelgesi</h3>
+        <div class="chart-container">
+            <canvas id="timeline-chart"></canvas>
+        </div>
+    </div>
+
+    <!-- Saldırı Türleri -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Saldırı Türleri</h3>
+        <div class="space-y-3" id="attack-types">
+            <!-- Saldırı türleri buraya eklenecek -->
+        </div>
+    </div>
+
+    <!-- Kullanılan Araçlar -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Kullanılan Araçlar</h3>
+        <div class="space-y-3" id="tools-used">
+            <!-- Kullanılan araçlar buraya eklenecek -->
+        </div>
+    </div>
+</div>
+
+<!-- Son Saldırılar -->
+<div class="bg-white shadow rounded-lg">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Son Saldırılar</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Şirket</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sektör</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ülke</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Etki</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200" id="recent-attacks-table">
+                <!-- Son saldırılar buraya eklenecek -->
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let threatActorData = null;
+
+// Sayfa yüklendiğinde tehdit aktörü verilerini yükle
+document.addEventListener('DOMContentLoaded', function() {
+    // URL'den tehdit aktörü adını al
+    const urlParams = new URLSearchParams(window.location.search);
+    const threatActorName = urlParams.get('name');
+    
+    if (threatActorName) {
+        loadThreatActorData(threatActorName);
+    } else {
+        // Mock data ile test
+        loadMockData();
+    }
+});
+
+// Tehdit aktörü verilerini yükle
+async function loadThreatActorData(threatActorName) {
+    try {
+        const response = await fetch(`/api/threat-actor-detail/${threatActorName}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            threatActorData = data.data;
+            updateThreatActorInfo(threatActorData);
+            updateAttackTypes(threatActorData.attack_types);
+            updateToolsUsed(threatActorData.tools);
+            updateRecentAttacks(threatActorData.recent_attacks);
+            createCharts(threatActorData);
+        } else {
+            console.error('Tehdit aktörü verileri yüklenemedi:', data.error);
+            loadMockData();
+        }
+    } catch (error) {
+        console.error('API hatası:', error);
+        loadMockData();
+    }
+}
+
+// Mock data ile test
+function loadMockData() {
+    threatActorData = {
+        name: 'LockBit',
+        description: 'Ransomware-as-a-Service (RaaS) modeli kullanan tehdit aktörü',
+        total_attacks: 45,
+        target_sectors: 8,
+        active_countries: 12,
+        threat_level: 'Yüksek',
+        sectors: {
+            'Finans': 15,
+            'Sağlık': 12,
+            'Eğitim': 8,
+            'Teknoloji': 6,
+            'E-ticaret': 4
+        },
+        countries: {
+            'TR': 8,
+            'US': 12,
+            'UK': 6,
+            'DE': 5,
+            'FR': 4,
+            'IT': 3,
+            'ES': 2,
+            'NL': 2,
+            'CA': 1,
+            'AU': 1,
+            'JP': 1
+        },
+        attack_types: [
+            { type: 'Ransomware', count: 35, percentage: 77.8 },
+            { type: 'Data Exfiltration', count: 28, percentage: 62.2 },
+            { type: 'DDoS', count: 5, percentage: 11.1 },
+            { type: 'Phishing', count: 12, percentage: 26.7 }
+        ],
+        tools: [
+            { name: 'LockBit Ransomware', usage: 'Yüksek' },
+            { name: 'Cobalt Strike', usage: 'Orta' },
+            { name: 'Mimikatz', usage: 'Orta' },
+            { name: 'PowerShell', usage: 'Düşük' }
+        ],
+        recent_attacks: [
+            { company: 'Türk Telekom A.Ş.', sector: 'Telekomünikasyon', country: 'TR', date: '2024-01-15', impact: 'Yüksek' },
+            { company: 'ABC Bank', sector: 'Finans', country: 'US', date: '2024-01-10', impact: 'Kritik' },
+            { company: 'XYZ Hastanesi', sector: 'Sağlık', country: 'UK', date: '2024-01-05', impact: 'Yüksek' }
+        ],
+        timeline: {
+            labels: ['2023-01', '2023-04', '2023-07', '2023-10', '2024-01'],
+            data: [8, 12, 6, 15, 4]
+        }
+    };
+    
+    updateThreatActorInfo(threatActorData);
+    updateAttackTypes(threatActorData.attack_types);
+    updateToolsUsed(threatActorData.tools);
+    updateRecentAttacks(threatActorData.recent_attacks);
+    createCharts(threatActorData);
+}
+
+// Tehdit aktörü bilgilerini güncelle
+function updateThreatActorInfo(data) {
+    document.getElementById('threat-actor-name').textContent = data.name;
+    document.getElementById('threat-actor-description').textContent = data.description;
+    document.getElementById('total-attacks').textContent = data.total_attacks.toLocaleString();
+    document.getElementById('target-sectors').textContent = data.target_sectors;
+    document.getElementById('active-countries').textContent = data.active_countries;
+    document.getElementById('threat-level').textContent = data.threat_level;
+}
+
+// Saldırı türlerini güncelle
+function updateAttackTypes(attackTypes) {
+    const container = document.getElementById('attack-types');
+    container.innerHTML = '';
+    
+    attackTypes.forEach(type => {
+        const typeDiv = document.createElement('div');
+        typeDiv.className = 'flex justify-between items-center p-3 bg-gray-50 rounded-lg';
+        typeDiv.innerHTML = `
+            <div>
+                <p class="text-sm font-medium text-gray-900">${type.type}</p>
+                <p class="text-xs text-gray-500">${type.count} saldırı</p>
+            </div>
+            <div class="text-right">
+                <p class="text-sm font-medium text-gray-900">${type.percentage}%</p>
+            </div>
+        `;
+        container.appendChild(typeDiv);
+    });
+}
+
+// Kullanılan araçları güncelle
+function updateToolsUsed(tools) {
+    const container = document.getElementById('tools-used');
+    container.innerHTML = '';
+    
+    tools.forEach(tool => {
+        const toolDiv = document.createElement('div');
+        toolDiv.className = 'flex justify-between items-center p-3 border rounded-lg';
+        toolDiv.innerHTML = `
+            <span class="text-sm text-gray-900">${tool.name}</span>
+            <span class="px-2 py-1 text-xs font-semibold rounded-full ${getUsageClass(tool.usage)}">
+                ${tool.usage}
+            </span>
+        `;
+        container.appendChild(toolDiv);
+    });
+}
+
+// Son saldırıları güncelle
+function updateRecentAttacks(attacks) {
+    const tbody = document.getElementById('recent-attacks-table');
+    tbody.innerHTML = '';
+    
+    attacks.forEach(attack => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${attack.company}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${attack.sector}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${attack.country}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${attack.date}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRiskClass(attack.impact)}">
+                    ${attack.impact}
+                </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <button onclick="viewCompany('${attack.company}')" class="text-blue-600 hover:text-blue-800">
+                    Detay
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Grafikleri oluştur
+function createCharts(data) {
+    createSectorDistributionChart(data);
+    createGeographicDistributionChart(data);
+    createTimelineChart(data);
+}
+
+// Sektörel dağılım grafiği
+function createSectorDistributionChart(data) {
+    const ctx = document.getElementById('sector-distribution-chart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(data.sectors),
+            datasets: [{
+                data: Object.values(data.sectors),
+                backgroundColor: [
+                    '#ef4444',
+                    '#f59e0b',
+                    '#10b981',
+                    '#3b82f6',
+                    '#8b5cf6'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+// Coğrafi dağılım grafiği
+function createGeographicDistributionChart(data) {
+    const ctx = document.getElementById('geographic-distribution-chart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(data.countries),
+            datasets: [{
+                label: 'Saldırı Sayısı',
+                data: Object.values(data.countries),
+                backgroundColor: '#3b82f6',
+                borderColor: '#2563eb',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+// Zaman çizelgesi grafiği
+function createTimelineChart(data) {
+    const ctx = document.getElementById('timeline-chart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.timeline.labels,
+            datasets: [{
+                label: 'Saldırı Sayısı',
+                data: data.timeline.data,
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+// Risk seviyesi CSS sınıfı
+function getRiskClass(riskLevel) {
+    switch(riskLevel) {
+        case 'Düşük': return 'risk-low';
+        case 'Orta': return 'risk-medium';
+        case 'Yüksek': return 'risk-high';
+        case 'Kritik': return 'risk-critical';
+        default: return 'risk-medium';
+    }
+}
+
+// Kullanım seviyesi CSS sınıfı
+function getUsageClass(usage) {
+    switch(usage) {
+        case 'Düşük': return 'bg-gray-100 text-gray-800';
+        case 'Orta': return 'bg-yellow-100 text-yellow-800';
+        case 'Yüksek': return 'bg-red-100 text-red-800';
+        default: return 'bg-gray-100 text-gray-800';
+    }
+}
+
+// Şirket detayını görüntüle
+function viewCompany(companyName) {
+    window.location.href = `/company-detail?name=${encodeURIComponent(companyName)}`;
+}
+
+// Export işlemi
+function exportThreatActorData() {
+    if (threatActorData) {
+        const data = {
+            name: threatActorData.name,
+            description: threatActorData.description,
+            total_attacks: threatActorData.total_attacks,
+            target_sectors: threatActorData.target_sectors,
+            active_countries: threatActorData.active_countries,
+            threat_level: threatActorData.threat_level,
+            sectors: threatActorData.sectors,
+            countries: threatActorData.countries,
+            attack_types: threatActorData.attack_types,
+            tools: threatActorData.tools,
+            recent_attacks: threatActorData.recent_attacks
+        };
+        
+        const jsonContent = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonContent], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${threatActorData.name.replace(/\s+/g, '_')}_detail.json`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+}
+
+// Geri dön
+function goBack() {
+    window.history.back();
+}
+</script>
+{% endblock %}
+

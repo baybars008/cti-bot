@@ -1,0 +1,9 @@
+[Unit]
+Description=CTIBOT
+
+[Service]
+User=root
+ExecStart=/bin/python3 /root/ctibot/background_jobs/cron_update_db.py
+
+[Install]
+WantedBy=default.target

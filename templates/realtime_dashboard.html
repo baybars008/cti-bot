@@ -1,0 +1,847 @@
+{% extends "base.html" %}
+
+{% block title %}CTI-BOT Dashboard - Real-time Analysis{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chart-container {
+        position: relative;
+        height: 250px;
+        width: 100%;
+        overflow: hidden;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+    
+    .chart-container canvas {
+        max-width: calc(100% - 20px) !important;
+        max-height: calc(100% - 20px) !important;
+        width: auto !important;
+        height: auto !important;
+    }
+    
+    /* Responsive grid adjustments */
+    @media (max-width: 1024px) {
+        .grid.lg\\:grid-cols-2 {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .chart-container {
+            height: 250px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Real-time Dashboard Başlığı -->
+<div class="mb-8">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Real-time Cyber Threat Analysis</h1>
+            <p class="text-gray-600">Live data stream and automatic updates</p>
+        </div>
+        <div class="flex space-x-4">
+            <button onclick="forceUpdate()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                <span>Update</span>
+            </button>
+            <button onclick="generateReport()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <span>Generate Report</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Real-time Status Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Update Status -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center" id="status-indicator">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Status</dt>
+                        <dd class="text-lg font-medium text-gray-900" id="status-text">Running</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Last Update -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Last Update</dt>
+                        <dd class="text-lg font-medium text-gray-900" id="last-update">-</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Frequency -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Frequency</dt>
+                        <dd class="text-lg font-medium text-gray-900" id="update-frequency">5 minutes</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Next Update -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Next Update</dt>
+                        <dd class="text-lg font-medium text-gray-900" id="next-update">-</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gelişmiş Grafikler -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <!-- Coğrafi Heatmap -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Coğrafi Heatmap</h3>
+            <select id="heatmap-days" class="px-3 py-1 text-sm border border-gray-300 rounded-md" onchange="loadHeatmap()">
+                <option value="7">Son 7 Gün</option>
+                <option value="30" selected>Son 30 Gün</option>
+                <option value="90">Son 90 Gün</option>
+            </select>
+        </div>
+        <div class="chart-container" style="position: relative; height: 250px; width: 100%; padding: 10px;">
+            <canvas id="heatmap-chart"></canvas>
+        </div>
+    </div>
+
+    <!-- Risk Trend Analizi -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Risk Trend Analizi</h3>
+            <select id="risk-trend-days" class="px-3 py-1 text-sm border border-gray-300 rounded-md" onchange="loadRiskTrend()">
+                <option value="30">Son 30 Gün</option>
+                <option value="90" selected>Son 90 Gün</option>
+                <option value="180">Son 180 Gün</option>
+            </select>
+        </div>
+        <div class="chart-container" style="position: relative; height: 250px; width: 100%; padding: 10px;">
+            <canvas id="risk-trend-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Sektörel Radar ve Tehdit Ağı -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <!-- Sektörel Radar Grafik -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Sektörel Risk Analizi</h3>
+        <div class="chart-container" style="position: relative; height: 250px; width: 100%; padding: 10px;">
+            <canvas id="sector-radar-chart"></canvas>
+        </div>
+    </div>
+
+    <!-- Tehdit Aktörü Ağı -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Tehdit Aktörü Ağı</h3>
+        <div class="chart-container" style="position: relative; height: 250px; width: 100%; padding: 10px;">
+            <canvas id="threat-network-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Şirket Risk Matrisi -->
+<div class="bg-white shadow rounded-lg">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Şirket Risk Matrisi</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Şirket</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sektör</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Büyüklük</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Risk Skoru</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldırı Sayısı</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Risk Seviyesi</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200" id="risk-matrix-table">
+                <!-- Risk matrisi verileri buraya eklenecek -->
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let updateInterval;
+let realtimeStatus = null;
+
+// Sayfa yüklendiğinde real-time dashboard'u başlat
+document.addEventListener('DOMContentLoaded', function() {
+    loadRealtimeStatus();
+    loadHeatmap();
+    loadRiskTrend();
+    loadSectorRadar();
+    loadThreatNetwork();
+    loadRiskMatrix();
+    
+    // Her 30 saniyede bir durumu güncelle
+    updateInterval = setInterval(loadRealtimeStatus, 30000);
+});
+
+// Real-time durumu yükle
+async function loadRealtimeStatus() {
+    try {
+        const response = await fetch('/api/realtime-status');
+        const data = await response.json();
+        
+        if (data.success) {
+            realtimeStatus = data.data;
+            updateStatusDisplay();
+        }
+    } catch (error) {
+        console.error('Real-time durum yüklenirken hata:', error);
+    }
+}
+
+// Update status display
+function updateStatusDisplay() {
+    if (!realtimeStatus) return;
+    
+    // Status indicator
+    const statusIndicator = document.getElementById('status-indicator');
+    const statusText = document.getElementById('status-text');
+    
+    if (realtimeStatus.is_running) {
+        statusIndicator.className = 'w-8 h-8 bg-green-500 rounded-full flex items-center justify-center';
+        statusText.textContent = 'Running';
+    } else {
+        statusIndicator.className = 'w-8 h-8 bg-red-500 rounded-full flex items-center justify-center';
+        statusText.textContent = 'Stopped';
+    }
+    
+    // Last update
+    if (realtimeStatus.last_update) {
+        const lastUpdate = new Date(realtimeStatus.last_update);
+        document.getElementById('last-update').textContent = lastUpdate.toLocaleString();
+    }
+    
+    // Update frequency
+    document.getElementById('update-frequency').textContent = `${realtimeStatus.update_interval / 60} minutes`;
+    
+    // Next update
+    if (realtimeStatus.next_update) {
+        const nextUpdate = new Date(realtimeStatus.next_update);
+        document.getElementById('next-update').textContent = nextUpdate.toLocaleString();
+    }
+}
+
+// Coğrafi heatmap yükle
+async function loadHeatmap() {
+    try {
+        const days = document.getElementById('heatmap-days').value;
+        const response = await fetch(`/api/advanced-charts?type=heatmap&days=${days}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            createHeatmapChart(data.data);
+        }
+    } catch (error) {
+        console.error('Heatmap yüklenirken hata:', error);
+    }
+}
+
+// Risk trend analizi yükle
+async function loadRiskTrend() {
+    try {
+        const days = document.getElementById('risk-trend-days').value;
+        const response = await fetch(`/api/advanced-charts?type=risk_trend&days=${days}`);
+        const data = await response.json();
+        
+        console.log('🔍 Risk trend API response:', data);
+        
+        if (data.success) {
+            createRiskTrendChart(data.data);
+        } else {
+            console.error('❌ Risk trend API hatası:', data.error);
+        }
+    } catch (error) {
+        console.error('Risk trend yüklenirken hata:', error);
+    }
+}
+
+// Sektörel radar grafik yükle
+async function loadSectorRadar() {
+    try {
+        const response = await fetch('/api/advanced-charts?type=sector_radar&days=30');
+        const data = await response.json();
+        
+        console.log('🔍 Sector radar API response:', data);
+        
+        if (data.success) {
+            createSectorRadarChart(data.data);
+        } else {
+            console.error('❌ Sector radar API hatası:', data.error);
+        }
+    } catch (error) {
+        console.error('Sektörel radar yüklenirken hata:', error);
+    }
+}
+
+// Tehdit aktörü ağı yükle
+async function loadThreatNetwork() {
+    try {
+        const response = await fetch('/api/advanced-charts?type=threat_network&days=30');
+        const data = await response.json();
+        
+        if (data.success) {
+            createThreatNetworkChart(data.data);
+        }
+    } catch (error) {
+        console.error('Tehdit ağı yüklenirken hata:', error);
+    }
+}
+
+// Risk matrisi yükle
+async function loadRiskMatrix() {
+    try {
+        const response = await fetch('/api/advanced-charts?type=company_matrix&days=30');
+        const data = await response.json();
+        
+        console.log('🔍 Risk matrix API response:', data);
+        
+        if (data.success) {
+            updateRiskMatrixTable(data.data);
+        } else {
+            console.error('❌ Risk matrix API hatası:', data.error);
+        }
+    } catch (error) {
+        console.error('Risk matrisi yüklenirken hata:', error);
+    }
+}
+
+// Heatmap grafiği oluştur
+function createHeatmapChart(data) {
+    console.log('📊 Heatmap grafiği oluşturuluyor...');
+    console.log('Heatmap data:', data);
+    
+    // Mevcut chart'ı yok et
+    if (window.heatmapChart) {
+        console.log('🗑️ Mevcut heatmap chart yok ediliyor...');
+        window.heatmapChart.destroy();
+        window.heatmapChart = null;
+    }
+    
+    if (!data || !data.data || !Array.isArray(data.data)) {
+        console.error('❌ Heatmap verisi geçersiz:', data);
+        return;
+    }
+    
+    const ctx = document.getElementById('heatmap-chart').getContext('2d');
+    
+    // API'den gelen veri yapısına göre düzenle (data.data array'i)
+    const countries = data.data.map(item => item.country || item.name || 'Bilinmeyen');
+    const counts = data.data.map(item => item.count || item.value || 0);
+    
+    window.heatmapChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: countries,
+            datasets: [{
+                label: 'Saldırı Sayısı',
+                data: counts,
+                backgroundColor: '#3b82f6',
+                borderColor: '#2563eb',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            aspectRatio: 1.8,
+            layout: {
+                padding: {
+                    top: 10,
+                    bottom: 10,
+                    left: 10,
+                    right: 10
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 8,
+                        font: {
+                            size: 11
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        maxTicksLimit: 5,
+                        font: {
+                            size: 10
+                        }
+                    },
+                    grid: {
+                        display: true
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxTicksLimit: 4,
+                        font: {
+                            size: 10
+                        }
+                    },
+                    grid: {
+                        display: true
+                    }
+                }
+            }
+        }
+    });
+    
+    console.log('✅ Heatmap grafiği oluşturuldu');
+}
+
+// Risk trend grafiği oluştur
+function createRiskTrendChart(data) {
+    console.log('📊 Risk trend grafiği oluşturuluyor...');
+    console.log('Risk trend data:', data);
+    
+    // Mevcut chart'ı yok et
+    if (window.riskTrendChart) {
+        console.log('🗑️ Mevcut risk trend chart yok ediliyor...');
+        window.riskTrendChart.destroy();
+        window.riskTrendChart = null;
+    }
+    
+    if (!data || !data.labels || !Array.isArray(data.labels)) {
+        console.error('❌ Risk trend verisi geçersiz:', data);
+        return;
+    }
+    
+    const ctx = document.getElementById('risk-trend-chart').getContext('2d');
+    
+    // API'den gelen veri yapısına göre düzenle
+    const labels = data.labels;
+    const datasets = data.datasets || [];
+    
+    window.riskTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: datasets.length > 0 ? datasets : [{
+                label: 'Risk Skoru',
+                data: [0, 0, 0, 0],
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            aspectRatio: 1.8,
+            layout: {
+                padding: {
+                    top: 10,
+                    bottom: 10,
+                    left: 10,
+                    right: 10
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 8,
+                        font: {
+                            size: 11
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 10,
+                    ticks: {
+                        maxTicksLimit: 5,
+                        font: {
+                            size: 10
+                        }
+                    },
+                    grid: {
+                        display: true
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxTicksLimit: 4,
+                        font: {
+                            size: 10
+                        }
+                    },
+                    grid: {
+                        display: true
+                    }
+                }
+            }
+        }
+    });
+    
+    console.log('✅ Risk trend grafiği oluşturuldu');
+}
+
+// Sektörel radar grafik oluştur
+function createSectorRadarChart(data) {
+    console.log('📊 Sektörel radar grafiği oluşturuluyor...');
+    console.log('Sector radar data:', data);
+    
+    // Mevcut chart'ı yok et
+    if (window.sectorRadarChart) {
+        console.log('🗑️ Mevcut sector radar chart yok ediliyor...');
+        window.sectorRadarChart.destroy();
+        window.sectorRadarChart = null;
+    }
+    
+    if (!data || !data.labels || !Array.isArray(data.labels)) {
+        console.error('❌ Sektörel radar verisi geçersiz:', data);
+        return;
+    }
+    
+    const ctx = document.getElementById('sector-radar-chart').getContext('2d');
+    
+    // API'den gelen veri yapısına göre düzenle
+    const labels = data.labels;
+    const datasets = data.datasets || [];
+    
+    window.sectorRadarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: labels,
+            datasets: datasets.length > 0 ? datasets : [{
+                label: 'Risk Skoru',
+                data: [0, 0, 0, 0, 0],
+                borderColor: '#8b5cf6',
+                backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                pointBackgroundColor: '#8b5cf6',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#8b5cf6'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            aspectRatio: 1,
+            layout: {
+                padding: {
+                    top: 10,
+                    bottom: 10,
+                    left: 10,
+                    right: 10
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 6,
+                        font: {
+                            size: 10
+                        }
+                    }
+                }
+            },
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 10,
+                    ticks: {
+                        stepSize: 2,
+                        maxTicksLimit: 5,
+                        font: {
+                            size: 9
+                        }
+                    },
+                    pointLabels: {
+                        font: {
+                            size: 9
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    console.log('✅ Sektörel radar grafiği oluşturuldu');
+}
+
+// Tehdit ağı grafiği oluştur
+function createThreatNetworkChart(data) {
+    const ctx = document.getElementById('threat-network-chart').getContext('2d');
+    
+    // Basit scatter plot olarak göster
+    const actors = data.nodes.filter(node => node.group === 'threat_actor');
+    const sectors = data.nodes.filter(node => node.group === 'sector');
+    
+    new Chart(ctx, {
+        type: 'scatter',
+        data: {
+            datasets: [{
+                label: 'Tehdit Aktörleri',
+                data: actors.map(actor => ({
+                    x: Math.random() * 100, // Gerçek koordinatlar için network library gerekli
+                    y: actor.attacks
+                })),
+                backgroundColor: '#ef4444',
+                borderColor: '#dc2626'
+            }, {
+                label: 'Sektörler',
+                data: sectors.map(sector => ({
+                    x: Math.random() * 100,
+                    y: sector.attacks
+                })),
+                backgroundColor: '#3b82f6',
+                borderColor: '#2563eb'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            aspectRatio: 1.2,
+            layout: {
+                padding: {
+                    top: 10,
+                    bottom: 10,
+                    left: 10,
+                    right: 10
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 8,
+                        font: {
+                            size: 11
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        maxTicksLimit: 4,
+                        font: {
+                            size: 10
+                        }
+                    },
+                    grid: {
+                        display: true
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        maxTicksLimit: 4,
+                        font: {
+                            size: 10
+                        }
+                    },
+                    grid: {
+                        display: true
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Risk matrisi tablosunu güncelle
+function updateRiskMatrixTable(data) {
+    console.log('📊 Risk matrisi tablosu güncelleniyor...');
+    console.log('Risk matrix data:', data);
+    
+    if (!data || !data.companies || !Array.isArray(data.companies)) {
+        console.error('❌ Risk matrisi verisi geçersiz:', data);
+        return;
+    }
+    
+    const tbody = document.getElementById('risk-matrix-table');
+    if (!tbody) {
+        console.error('❌ risk-matrix-table elementi bulunamadı');
+        return;
+    }
+    
+    tbody.innerHTML = '';
+    
+    data.companies.forEach(company => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${company.company}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${company.sector}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${company.size}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${company.risk_score}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${company.total_attacks}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRiskClass(company.risk_level)}">
+                    ${company.risk_level}
+                </span>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+    
+    console.log('✅ Risk matrisi tablosu güncellendi');
+}
+
+// Risk seviyesi CSS sınıfı
+function getRiskClass(riskLevel) {
+    switch(riskLevel) {
+        case 'Düşük': return 'risk-low';
+        case 'Orta': return 'risk-medium';
+        case 'Yüksek': return 'risk-high';
+        case 'Kritik': return 'risk-critical';
+        default: return 'risk-medium';
+    }
+}
+
+// Zorla güncelleme
+async function forceUpdate() {
+    try {
+        console.log('🔄 Force update başlatılıyor...');
+        const response = await fetch('/api/force-update', { method: 'POST' });
+        const data = await response.json();
+        
+        console.log('🔍 Force update response:', data);
+        
+        if (data.success) {
+            console.log('✅ Güncelleme başlatıldı');
+            alert('Güncelleme başlatıldı!');
+            loadRealtimeStatus();
+        } else {
+            console.error('❌ Güncelleme başlatılamadı:', data.error);
+            alert('Güncelleme başlatılamadı: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Güncelleme hatası:', error);
+        alert('Güncelleme hatası: ' + error.message);
+    }
+}
+
+// Rapor oluştur
+async function generateReport() {
+    const reportType = prompt('Rapor türü seçin:\n1. Günlük\n2. Haftalık\n3. Aylık', '1');
+    
+    if (!reportType) return;
+    
+    let type, date;
+    switch(reportType) {
+        case '1':
+            type = 'daily';
+            date = new Date().toISOString().split('T')[0];
+            break;
+        case '2':
+            type = 'weekly';
+            date = new Date().toISOString().split('T')[0];
+            break;
+        case '3':
+            type = 'monthly';
+            date = new Date().toISOString().split('T')[0];
+            break;
+        default:
+            alert('Geçersiz seçim!');
+            return;
+    }
+    
+    try {
+        const response = await fetch(`/api/generate-report?type=${type}&date=${date}`, { method: 'POST' });
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`Rapor oluşturuldu!\nDosya: ${data.data.filepath}`);
+        } else {
+            alert('Rapor oluşturulamadı: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Rapor oluşturma hatası:', error);
+        alert('Rapor oluşturma hatası: ' + error.message);
+    }
+}
+
+// Sayfa kapatılırken interval'ı temizle
+window.addEventListener('beforeunload', function() {
+    if (updateInterval) {
+        clearInterval(updateInterval);
+    }
+});
+</script>
+{% endblock %}
